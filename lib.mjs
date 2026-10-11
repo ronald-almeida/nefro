@@ -62,7 +62,7 @@ export async function gateway(path, { apiKey, payload, fetcher = fetch }) {
   try {
     response = await fetcher(`${API_BASE}${path}`, {
       method: payload ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-      ...(payload ? { body: JSON.stringify(payload) } : {}), signal: AbortSignal.timeout(18000), redirect: 'error'
+      ...(payload ? { body: JSON.stringify(payload) } : {}), signal: AbortSignal.timeout(payload ? 55000 : 18000), redirect: 'error'
     });
   } catch { throw new CheckoutError(502, payload ? 'Não foi possível obter a resposta da cobrança. Não gere outro Pix: consulte a NefroPós antes de tentar novamente.' : 'Não foi possível consultar o pagamento. Tente verificar novamente.', payload ? 'CREATION_UNCERTAIN' : 'STATUS_UNAVAILABLE'); }
   if (!response.ok) {
@@ -80,4 +80,26 @@ export function verifySale(data, expectedId) {
   if (!data || typeof data.transactionId !== 'string' || !/^[a-zA-Z0-9_-]{1,200}$/.test(data.transactionId) || (expectedId && data.transactionId !== expectedId) || data.amount !== AMOUNT || String(data.paymentMethod).toLowerCase() !== 'pix') {
     throw new CheckoutError(502, 'Não foi possível validar os dados da transação. Entre em contato com a NefroPós.', expectedId ? 'STATUS_UNAVAILABLE' : 'CREATION_UNCERTAIN');
   }
+}
+
+// Creation already specifies the amount/method. Missing optional response fields
+// must not discard an existing charge. Status confirmation remains strict above.
+export function createdPayment(data, secret) {
+  const id = data?.transactionId;
+  if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]{1,200}$/.test(id)) throw new CheckoutError(502, 'O processador não retornou a referência da cobrança. Consulte a NefroPós antes de tentar novamente.', 'CREATION_UNCERTAIN');
+  const hasAmount = data.amount !== undefined && data.amount !== null;
+  const amount = typeof data.amount === 'string' && /^\d+$/.test(data.amount) ? Number(data.amount) : data.amount;
+  const mismatch = (hasAmount && amount !== AMOUNT) || (data.paymentMethod != null && String(data.paymentMethod).toLowerCase() !== 'pix');
+  const p = data.paymentData || {};
+  const candidate = [p.copyPaste, p.qrCode].find(value => typeof value === 'string' && value.trim().startsWith('000201') && value.trim().length <= 4096);
+  const copyPaste = !mismatch && candidate ? candidate.trim() : null;
+  const expiresAt = Number.isFinite(Date.parse(p.expiresAt)) ? new Date(p.expiresAt).toISOString() : null;
+  const raw = p.qrCodeBase64;
+  const qrCodeBase64 = copyPaste && typeof raw === 'string' && /^data:image\/png;base64,[a-zA-Z0-9+/=]+$/.test(raw) && raw.length < 500000 ? raw : null;
+  let invoiceUrl = null;
+  try {
+    const url = new URL(data.invoiceUrl);
+    if (!mismatch && url.protocol === 'https:' && !url.username && !url.password && ['blackcat.squarify.co', 'api.blackcatoficial.com', 'blackcatoficial.com'].includes(url.hostname)) invoiceUrl = url.href;
+  } catch { /* Invoice link is optional. */ }
+  return { transactionId: id, amount: AMOUNT, status: 'PENDING', token: signTransaction(id, secret), copyPaste, qrCodeBase64, expiresAt, invoiceUrl, paymentDataPending: !copyPaste };
 }

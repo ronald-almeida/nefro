@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
-import { AMOUNT, salePayload, validCPF, signTransaction, verifyTransaction, gateway } from '../lib.mjs';
+import { AMOUNT, createdPayment, salePayload, validCPF, signTransaction, verifyTransaction } from '../lib.mjs';
 import { createHandler } from '../checkout-api.mjs';
 
 const input = { name: 'Aluno de Teste', email: 'aluno@example.com', phone: '(11) 99999-9999', cpf: '529.982.247-25', zipCode: '01001-000', street: 'Praça da Sé', number: '1', city: 'São Paulo', neighborhood: 'Sé', complement: '', state: 'SP' };
@@ -74,11 +74,24 @@ test('missing credentials, cross origin, wrong method and invalid token fail clo
   assert.equal((await api('/api/status', { token: 'forged' })).status, 401);
 });
 test('timeouts, upstream 500 and malformed success are uncertain and never retried', async () => {
-  for (const response of [() => { throw new Error('timeout'); }, () => new Response('{}', { status: 500 }), () => new Response('not json'), () => reply({ ...transaction, paymentData: {} })]) {
+  for (const response of [() => { throw new Error('timeout'); }, () => new Response('{}', { status: 500 }), () => new Response('not json')]) {
     let count = 0;
     const result = await api('/api/pix', input, { fetcher: () => { count++; return response(); } });
     assert.equal(result.status, 502); assert.equal(result.body.code, 'CREATION_UNCERTAIN'); assert.equal(count, 1);
   }
+});
+test('created transaction is kept when Pix response omits optional fields', async () => {
+  const result = await api('/api/pix', input, { fetcher: () => reply({ transactionId: 'TRX1791699816701UXN74', amount: '49770', paymentMethod: 'PIX', status: 'PENDING', paymentData: {} }) });
+  assert.equal(result.status, 201);
+  assert.equal(result.body.transactionId, 'TRX1791699816701UXN74');
+  assert.equal(result.body.copyPaste, null);
+  assert.equal(result.body.paymentDataPending, true);
+  assert.ok(result.body.token);
+});
+test('only a recognised invoice link is passed through as a fallback', () => {
+  const payment = createdPayment({ ...transaction, invoiceUrl: 'https://blackcat.squarify.co/checkout/TRX-1' }, secret);
+  assert.equal(payment.invoiceUrl, 'https://blackcat.squarify.co/checkout/TRX-1');
+  assert.equal(createdPayment({ ...transaction, invoiceUrl: 'https://attacker.example/checkout' }, secret).invoiceUrl, null);
 });
 test('upstream errors are sanitized without leaking provider response or secrets', async () => {
   for (const [status, expected] of [[400, 400], [422, 400], [401, 503], [403, 503], [429, 429]]) {

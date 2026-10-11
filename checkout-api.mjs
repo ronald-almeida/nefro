@@ -1,4 +1,4 @@
-import { AMOUNT, CheckoutError, salePayload, gateway, signTransaction, verifyTransaction, verifySale } from './lib.mjs';
+import { AMOUNT, CheckoutError, salePayload, gateway, verifyTransaction, verifySale, createdPayment } from './lib.mjs';
 
 const limits = new Map();
 function limit(key, maximum) {
@@ -37,21 +37,19 @@ export function createHandler({ env = process.env, fetcher = fetch } = {}) {
       const input = await jsonBody(req);
       if (pathname === '/api/pix') {
         const data = await gateway('/sales/create-sale', { apiKey: env.BLACKCAT_API_KEY, payload: salePayload(input), fetcher });
-        verifySale(data);
-        const p = data.paymentData;
-        const code = p?.copyPaste || p?.qrCode;
-        if (typeof code !== 'string' || !code.startsWith('000201') || code.length > 4096 || !Number.isFinite(Date.parse(p?.expiresAt))) throw new CheckoutError(502, 'O Pix foi solicitado, mas seus dados não puderam ser exibidos. Consulte a NefroPós antes de tentar novamente.', 'CREATION_UNCERTAIN');
-        const rawQR = p.qrCodeBase64;
-        const qrCodeBase64 = typeof rawQR === 'string' && /^data:image\/png;base64,[a-zA-Z0-9+/=]+$/.test(rawQR) && rawQR.length < 500000 ? rawQR : null;
-        return send(201, { transactionId: data.transactionId, amount: AMOUNT, status: 'PENDING', token: signTransaction(data.transactionId, env.SESSION_SECRET), copyPaste: code, qrCodeBase64, expiresAt: p.expiresAt });
+        const payment = createdPayment(data, env.SESSION_SECRET);
+        console.info(JSON.stringify({ event: 'pix_created', hasCode: Boolean(payment.copyPaste), hasImage: Boolean(payment.qrCodeBase64), hasExpiry: Boolean(payment.expiresAt), hasInvoice: Boolean(payment.invoiceUrl), amountType: typeof data.amount }));
+        return send(201, payment);
       }
       const id = verifyTransaction(input?.token, env.SESSION_SECRET);
       const data = await gateway(`/sales/${encodeURIComponent(id)}/status`, { apiKey: env.BLACKCAT_API_KEY, fetcher });
       verifySale(data, id);
       if (!['PENDING', 'PAID', 'CANCELLED', 'REFUNDED'].includes(data.status)) throw new CheckoutError(502, 'O processador retornou um status desconhecido. Tente verificar novamente.', 'STATUS_UNAVAILABLE');
-      return send(200, { transactionId: id, status: data.status, amount: AMOUNT });
+      const payment = data.paymentData ? createdPayment(data, env.SESSION_SECRET) : null;
+      return send(200, { transactionId: id, status: data.status, amount: AMOUNT, ...(payment?.copyPaste ? { payment } : {}) });
     } catch (error) {
       const known = error instanceof CheckoutError;
+      console.warn(JSON.stringify({ event: 'checkout_error', code: known ? error.code : 'INTERNAL', status: known ? error.status : 500 }));
       send(known ? error.status : 500, { error: known ? error.message : 'Ocorreu um erro inesperado. Entre em contato com a NefroPós.', code: known ? error.code : 'INTERNAL' });
     }
   };

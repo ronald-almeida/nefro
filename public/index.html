@@ -50,13 +50,18 @@
         </div>
       </fieldset>
     </form>
-    <section id="pix-result" hidden aria-labelledby="pix-title" tabindex="-1">
+    <button id="reopen-payment" type="button" hidden>Ver meu Pix</button>
+    <dialog id="pix-result" hidden aria-labelledby="pix-title" tabindex="-1">
+      <button id="close-payment" class="close-payment" type="button" aria-label="Fechar janela do Pix">×</button>
       <h2 id="pix-title">Pague com Pix</h2><p class="result-price">R$ 497,70</p>
       <p id="payment-status" role="status" aria-live="polite">Aguardando pagamento</p>
       <div id="payment-instructions"><p>Abra o aplicativo do seu banco e escaneie o QR Code ou use o Pix copia e cola.</p><img id="qr-code" alt="QR Code do pagamento Pix de R$ 497,70" width="240" height="240" hidden><p id="expiry"></p><label id="copy-label">Pix copia e cola<textarea id="pix-code" readonly rows="3"></textarea></label><button id="copy-pix" type="button">Copiar código Pix</button><p id="copy-feedback" role="status"></p></div>
+      <p id="payment-data-message" hidden></p>
+      <a id="gateway-invoice" class="invoice-link" target="_blank" rel="noopener noreferrer" hidden>Abrir pagamento na BlackCat</a>
+      <p id="payment-error" role="alert" hidden></p>
       <button id="check-status" class="secondary" type="button">Verificar pagamento</button><p id="reference" class="reference"></p>
       <button id="new-payment" class="secondary" type="button" hidden>Voltar ao formulário</button>
-    </section>
+    </dialog>
     <p id="error" role="alert" hidden></p>
     <p class="security-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10V7a6 6 0 0 1 12 0v3h2v12H4V10zm3 0h6V7a3 3 0 0 0-6 0z"/></svg> Informações protegidas durante o pagamento</p>
   </div>
