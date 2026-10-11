@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import handler from './checkout-api.mjs';
-const types = { '/': ['index.html', 'text/html; charset=utf-8'], '/app.js': ['app.js', 'text/javascript; charset=utf-8'], '/styles.css': ['styles.css', 'text/css; charset=utf-8'], '/logo.png': ['logo.png', 'image/png'], '/nunito.woff2': ['nunito.woff2', 'font/woff2'] };
+const types = { '/': ['index.html', 'text/html; charset=utf-8'], '/app.js': ['app.js', 'text/javascript; charset=utf-8'], '/styles.css': ['styles.css', 'text/css; charset=utf-8'], '/logo.png': ['logo.png', 'image/png'], '/pix-icon.png': ['pix-icon.png', 'image/png'], '/nunito.woff2': ['nunito.woff2', 'font/woff2'] };
 createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
   if (path.startsWith('/api/')) return handler(req, res);
