@@ -28,10 +28,9 @@ function showPayment(data) {
   $('pix-code').value = data.copyPaste || '';
   $('qr-code').hidden = !data.qrCodeBase64;
   if (data.qrCodeBase64) $('qr-code').src = data.qrCodeBase64;
-  $('reference').textContent = `Referência: ${data.transactionId}`;
   $('payment-instructions').hidden = !data.copyPaste;
   $('payment-data-message').hidden = Boolean(data.copyPaste);
-  $('payment-data-message').textContent = 'Sua cobrança foi criada. Os dados do Pix ainda não foram disponibilizados. Não gere outra cobrança; use a referência abaixo para consultar a NefroPós.';
+  $('payment-data-message').textContent = 'Sua cobrança foi criada. Os dados do Pix ainda não foram disponibilizados. Não gere outra cobrança; entre em contato com a NefroPós.';
   $('gateway-invoice').hidden = !data.invoiceUrl;
   if (data.invoiceUrl) $('gateway-invoice').href = data.invoiceUrl;
   $('check-status').hidden = false;
@@ -119,3 +118,4 @@ try {
   if (saved?.uncertain) { creating = true; locked('Uma solicitação anterior não foi concluída neste navegador. Consulte a NefroPós antes de gerar outro Pix: (17) 99705-4009.'); }
   else if (saved?.token && saved?.transactionId) showPayment(saved);
 } catch { /* Ignore unavailable storage. Never infer a payment status from stored data. */ }
+
