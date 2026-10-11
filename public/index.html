@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05265f">
+  <meta name="description" content="Checkout NefroPós. Pagamento único de R$ 497,70 via Pix.">
+  <title>NefroPós | Checkout Pix</title>
+  <link rel="icon" href="/logo.png" type="image/png">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+<main class="checkout">
+  <aside class="summary card" aria-label="Resumo da compra">
+    <div class="secure-banner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 6v6c0 5 9 10 9 10s9-5 9-10V6zm0 3v13c-3-2-6-5-6-7V8z"/></svg> COMPRA SEGURA</div>
+    <div class="summary-body">
+      <div class="product"><img src="/logo.png" alt="NefroPós" width="120" height="120"><div><p class="eyebrow">Você está comprando</p><h1>NefroPós</h1><p class="price">R$ 497,70 <span>no Pix</span></p><p class="single">Pagamento único</p></div></div>
+      <dl><dt>Autor</dt><dd>NEFROPOS EDUCAÇÃO</dd><dt>E-mail</dt><dd><a href="mailto:nefrologia@ferpirotta.com">nefrologia@ferpirotta.com</a></dd><dt>Telefone</dt><dd><a class="contact" href="tel:+5517997054009">(17) 99705-4009</a></dd></dl>
+    </div>
+  </aside>
+  <div class="form-card card">
+    <form id="checkout-form">
+      <fieldset id="personal"><legend><span>01</span> Dados pessoais</legend>
+        <div class="country"><span aria-hidden="true">🇧🇷</span> Brasil</div>
+        <div class="fields">
+          <label>Nome completo do aluno<input name="name" autocomplete="name" placeholder="Digite seu nome completo" required minlength="5" maxlength="120"></label>
+          <label>E-mail<input name="email" type="email" autocomplete="email" placeholder="E-mail que receberá o produto" required maxlength="160"></label>
+          <label>Telefone<div class="phone"><span>🇧🇷 +55</span><input name="phone" type="tel" autocomplete="tel-national" inputmode="tel" placeholder="Número do telefone" required maxlength="16"></div></label>
+          <label>CPF do Aluno<input name="cpf" inputmode="numeric" placeholder="Informe o CPF do Aluno" required maxlength="14"></label>
+        </div>
+      </fieldset>
+      <fieldset id="address"><legend><span>02</span> Endereço de entrega</legend>
+        <div class="fields">
+          <label>CEP<input name="zipCode" autocomplete="postal-code" inputmode="numeric" placeholder="CEP" required maxlength="9"></label>
+          <label>Endereço<input name="street" autocomplete="address-line1" placeholder="Informe o endereço" required maxlength="160"></label>
+          <label>Número<input name="number" placeholder="Número" required maxlength="20"></label>
+          <label>Cidade<input name="city" autocomplete="address-level2" placeholder="Cidade" required maxlength="100"></label>
+          <label>Bairro<input name="neighborhood" placeholder="Bairro" required maxlength="100"></label>
+          <label>Complemento<input name="complement" autocomplete="address-line2" placeholder="Complemento do endereço" maxlength="100"></label>
+          <label>Estado<select name="state" autocomplete="address-level1" required><option value="">Estado</option><option value="AC">Acre</option><option value="AL">Alagoas</option><option value="AP">Amapá</option><option value="AM">Amazonas</option><option value="BA">Bahia</option><option value="CE">Ceará</option><option value="DF">Distrito Federal</option><option value="ES">Espírito Santo</option><option value="GO">Goiás</option><option value="MA">Maranhão</option><option value="MT">Mato Grosso</option><option value="MS">Mato Grosso do Sul</option><option value="MG">Minas Gerais</option><option value="PA">Pará</option><option value="PB">Paraíba</option><option value="PR">Paraná</option><option value="PE">Pernambuco</option><option value="PI">Piauí</option><option value="RJ">Rio de Janeiro</option><option value="RN">Rio Grande do Norte</option><option value="RS">Rio Grande do Sul</option><option value="RO">Rondônia</option><option value="RR">Roraima</option><option value="SC">Santa Catarina</option><option value="SP">São Paulo</option><option value="SE">Sergipe</option><option value="TO">Tocantins</option></select></label>
+        </div>
+      </fieldset>
+      <fieldset id="payment"><legend><span>03</span> Pagamento</legend>
+        <div class="fields">
+          <div class="pix-tab"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="m16 2 8 8-5 5a4 4 0 0 1-6 0l-5-5zm10 10 4 4-4 4-5-5zm-20 0 5 3-5 5-4-4zm2 10 5-5a4 4 0 0 1 6 0l5 5-8 8z"/></svg>Pix</div>
+          <div class="pix-intro"><strong>R$ 497,70 à vista</strong><p>Gere seu Pix e pague com o aplicativo do seu banco. A confirmação aparecerá aqui após a verificação do pagamento.</p></div>
+          <button id="generate" type="submit">Gerar Pix de R$ 497,70</button>
+          <p class="privacy">Seus dados serão enviados à NefroPós e ao processador de pagamento para realizar esta compra.</p>
+        </div>
+      </fieldset>
+    </form>
+    <section id="pix-result" hidden aria-labelledby="pix-title" tabindex="-1">
+      <h2 id="pix-title">Pague com Pix</h2><p class="result-price">R$ 497,70</p>
+      <p id="payment-status" role="status" aria-live="polite">Aguardando pagamento</p>
+      <div id="payment-instructions"><p>Abra o aplicativo do seu banco e escaneie o QR Code ou use o Pix copia e cola.</p><img id="qr-code" alt="QR Code do pagamento Pix de R$ 497,70" width="240" height="240" hidden><p id="expiry"></p><label id="copy-label">Pix copia e cola<textarea id="pix-code" readonly rows="3"></textarea></label><button id="copy-pix" type="button">Copiar código Pix</button><p id="copy-feedback" role="status"></p></div>
+      <button id="check-status" class="secondary" type="button">Verificar pagamento</button><p id="reference" class="reference"></p>
+      <button id="new-payment" class="secondary" type="button" hidden>Voltar ao formulário</button>
+    </section>
+    <p id="error" role="alert" hidden></p>
+    <p class="security-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10V7a6 6 0 0 1 12 0v3h2v12H4V10zm3 0h6V7a3 3 0 0 0-6 0z"/></svg> Informações protegidas durante o pagamento</p>
+  </div>
+</main>
+</body>
+</html>
